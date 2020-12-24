@@ -51,10 +51,22 @@ void draw_oled() {
   }
 }
 
+void cls(){
+  // black screen (first time)
+  delay(200);
+  for (uint8_t page=0; page<8; page++){
+    oled.set_all_area(0, 127, page);
+    oled.ssd1306_send_data_start();
+    for (int i=0; i < 128; i++){
+      oled.ssd1306_send_data_byte(0x00);
+    }
+    oled.ssd1306_send_data_stop();
+    delay(100);
+  }
+}
+
 void setup() {
-//  pinMode(UNUSEDPIN, INPUT_PULLUP);
-//  pinMode(SETBUTTON, INPUT_PULLUP);
-//  pinMode(UPBUTTON, INPUT_PULLUP);
+
     pinMode(PORTB0, OUTPUT); // SDA
     pinMode(PORTB2, OUTPUT); // SCL
     digitalWrite(PORTB2, LOW);
@@ -63,21 +75,11 @@ void setup() {
 
   TinyWireM.begin();
   oled.begin();
-
-  // black screen (first time)
-  for (uint8_t page=0; page<8; page++){
-    //(uint8_t colstart, uint8_t colend, uint8_t pagestart, uint8_t pageend)
-    oled.set_all_area(0, 127, page);
-    oled.ssd1306_send_data_start();
-    for (int i=0; i < 128; i++){
-      oled.ssd1306_send_data_byte(0);
-    }
-    oled.ssd1306_send_data_stop();
-    delay(100);
-  }
-  delay(5000);
+/*
+  cls();
   uint8_t cnt=0;
-  
+
+  // write lines
   for (uint8_t page=0; page<8; page++){
     //(uint8_t colstart, uint8_t colend, uint8_t pagestart, uint8_t pageend)
     oled.set_all_area(0, 127, page);
@@ -89,9 +91,8 @@ void setup() {
     delay(100);
   }
 
-   cnt=1;
+  cnt=1;
   if (cnt>100) {
-
     for (uint8_t page=0; page<8; page++){
       oled.set_all_area(8, 16, page);
       oled.ssd1306_send_data_start();
@@ -101,7 +102,6 @@ void setup() {
       oled.ssd1306_send_data_stop();
     }
     delay(2000);
-
 
     for (uint8_t page=0; page<8; page++){
       oled.set_all_area(24, 32, page);
@@ -124,7 +124,7 @@ void setup() {
     delay(2000);
   }
 
-/*
+
   for (uint8_t page=0; page<8; page++){
     //(uint8_t colstart, uint8_t colend, uint8_t pagestart, uint8_t pageend)
     oled.set_all_area(0, 127, page);
@@ -142,29 +142,56 @@ void setup() {
     oled.ssd1306_send_data_stop();
     delay(100);
   }
+ 
   
-fail
-  for (uint8_t page=0; page<8; page++){
+
+  // letter A
+  for (uint8_t page=0; page<8; page=page+2){
     //(uint8_t colstart, uint8_t colend, uint8_t pagestart, uint8_t pageend)
     oled.set_all_area(0, 127, page);
     oled.ssd1306_send_data_start();
     for (int i=0; i < 16; i++){
-      oled.ssd1306_send_data_byte(00000000);
-      oled.ssd1306_send_data_byte(00000000);
-      oled.ssd1306_send_data_byte(01111110);
-      oled.ssd1306_send_data_byte(10010000);
-      oled.ssd1306_send_data_byte(10010000);
-      oled.ssd1306_send_data_byte(01111110);
-      oled.ssd1306_send_data_byte(00000000);
+      expand1to3(0b00000000);oled.ssd1306_send_data_byte(word1);oled.ssd1306_send_data_byte(word2);oled.ssd1306_send_data_byte(word3);
+      expand1to3(0b00000000);oled.ssd1306_send_data_byte(word1);oled.ssd1306_send_data_byte(word2);oled.ssd1306_send_data_byte(word3);
+      expand1to3(0b01111110);oled.ssd1306_send_data_byte(word1);oled.ssd1306_send_data_byte(word2);oled.ssd1306_send_data_byte(word3);
+      expand1to3(0b00010001);oled.ssd1306_send_data_byte(word1);oled.ssd1306_send_data_byte(word2);oled.ssd1306_send_data_byte(word3);
+      expand1to3(0b00010001);oled.ssd1306_send_data_byte(word1);oled.ssd1306_send_data_byte(word2);oled.ssd1306_send_data_byte(word3);
+      expand1to3(0b01111110);oled.ssd1306_send_data_byte(word1);oled.ssd1306_send_data_byte(word2);oled.ssd1306_send_data_byte(word3);
+      expand1to3(0b00000000);oled.ssd1306_send_data_byte(word1);oled.ssd1306_send_data_byte(word2);oled.ssd1306_send_data_byte(word3);
+      expand1to3(0b00000000);oled.ssd1306_send_data_byte(word1);oled.ssd1306_send_data_byte(word2);oled.ssd1306_send_data_byte(word3);
     }
     oled.ssd1306_send_data_stop();
     delay(100);
   }
-  */
-  
+*/
+  cls();
 
+  for (uint8_t cnt=0; cnt<5; cnt++) {
+    oled.draw_digit_24x32(cnt,0,cnt,false);
+    oled.draw_digit_24x32(cnt,1,cnt+5,false);
+  }
+/*
+  cls();
+  for (uint8_t page=0; page<8; page=page+4){
+    //(uint8_t colstart, uint8_t colend, uint8_t pagestart, uint8_t pageend)
+    oled.set_all_area(0, 127, page);
+    oled.ssd1306_send_data_start();
+    for (int i=0; i < 127; i++){
+      oled.ssd1306_send_data_byte(0b11111111);
+    }
+    oled.ssd1306_send_data_stop();
+    delay(1000);
+    cls();
+  }
+*/
   while (true) {
-    delay(8000);
+//    cls();
+
+//    for (uint8_t i=0; i<10; i++){
+//      oled.draw_digit_24x32(i*8,0,i,false);
+//      delay(500);
+//    }
+    delay(1000);
   }
 }
 

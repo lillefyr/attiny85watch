@@ -5,7 +5,6 @@
  */
 
 #include "ssd1306.h"
-#include "watchdigit.h"
 #include <avr/pgmspace.h>
 #include <TinyWireM.h>
 
@@ -212,21 +211,30 @@ void SSD1306::draw_pattern2(uint8_t pattern) {
   ssd1306_send_data_stop();
 }
 
+int SSD1306::get_offset(byte theChar){
+  // calculated based on the array in watchdigit.h
+  if (( theChar >= 0) && ( theChar <= 9)) { return theChar*96; }
+  if (theChar == 0x20) { return 10*96; }
+  if (theChar == ';')  { return 11*96; }
+  if (theChar == '.')  { return 12*96; }
+  if (theChar == 'V')  { return 13*96; }
+  return 0;  
+}
 
-void SSD1306::draw_digit2(uint8_t col, uint8_t page, uint8_t digit, bool invert_color)
+void SSD1306::draw_digit_24x32(uint8_t col, uint8_t row, uint8_t digit, bool invert_color)
 {
-  set_all_area(col, FONTWIDTH - 1, page );
-  uint16_t offset = digit * FONTWIDTH;
-  uint8_t data;
-
-  ssd1306_send_data_start();
-  for (uint8_t i = 0; i < FONTWIDTH; i++) // 8x7 font size data: (8 / 8) * 7 = 7
-  {
-    data = pgm_read_byte_near(&watch_digit[offset++]);
-    if (invert_color) data = ~ data; // invert
-    ssd1306_send_data_byte(data);
+  int offset = get_offset(digit);
+  col=col*24; // size of char
+  if (( offset == -1) || (col > 100) || ( row > 1)) { return; } //cant print here
+  
+  for (uint8_t page = row*4; page< ((row*4)+4); page++) {
+    set_all_area(col, 127, page);
+    ssd1306_send_data_start();
+    for (int i=0; i < 24; i++){
+      ssd1306_send_data_byte(pgm_read_word_near(&font24x32[offset+i+(24*page)]));
+    }
+    ssd1306_send_data_stop();
   }
-  ssd1306_send_data_stop();
 }
 
 
@@ -246,29 +254,11 @@ void SSD1306::draw_digit(uint8_t col, uint8_t page, uint8_t digit, bool invert_c
   ssd1306_send_data_stop();
 }
 
-void SSD1306::draw_3x_digit(uint8_t col, uint8_t page, uint8_t digit, bool invert_color)
-{
-  set_area(col, page, FONT3XWIDTH - 1, 3 - 1);
-  uint16_t offset = digit * 3 * FONT3XWIDTH; // 24x15 font size data: (24 / 8) * 15 = 45
-  uint8_t data;
-
-  ssd1306_send_data_start();
-  for (uint8_t j = 0; j < 3 * FONT3XWIDTH; j++)
-  {
-    data = pgm_read_word_near(&watch_3x_digit[offset++]);
-    if (invert_color) data = ~ data; // invert
-    ssd1306_send_data_byte(data);
-  }
-  ssd1306_send_data_stop();
-}
-
 void SSD1306::print_digits(uint8_t col, uint8_t page, uint8_t font_size, uint32_t factor, uint32_t digits, bool invert_color) {
   uint16_t cur_digit = digits / factor;
 
   if (font_size == 1) {
     draw_digit(col, page, cur_digit, invert_color);
-  } else {
-    draw_3x_digit(col, page, cur_digit, invert_color);
   }
 
   if (factor > 1) {

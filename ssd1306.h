@@ -4,7 +4,8 @@
  * SSD1306 data sheet: https://www.adafruit.com/datasheets/SSD1306.pdf
  */
 #include <TinyWireM.h>
- 
+#include "watchdigit.h"
+
 #define SCREEN128X64 1
 
 // custom I2C address by define SSD1306_I2C_ADDR
@@ -46,9 +47,9 @@ class SSD1306 {
     void draw_pattern(uint8_t col, uint8_t page, uint8_t width, uint8_t pattern);
     void draw_pattern2(uint8_t pattern);
     void draw_digit(uint8_t col, uint8_t page, uint8_t digit, bool invert_color);
-    void draw_digit2(uint8_t col, uint8_t page, uint8_t digit, bool invert_color);
-    void draw_3x_digit(uint8_t col, uint8_t page, uint8_t digit, bool invert_color);
+    void draw_digit_24x32(uint8_t col, uint8_t row, uint8_t digit, bool invert_color);
     void print_digits(uint8_t col, uint8_t page, uint8_t font_size, uint32_t factor, uint32_t digits, bool invert_color);
+    int get_offset(byte theChar);
     void off();
     void on();
 };
