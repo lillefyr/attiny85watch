@@ -174,15 +174,21 @@ void SSD1306::set_area(uint8_t col, uint8_t page, uint8_t col_range_minus_1, uin
 
 void SSD1306::fill(uint8_t data)
 {
-  set_area(0, 0, WIDTH - 1, PAGES - 1);
-  uint16_t data_size = (WIDTH) * (PAGES);
-
-  ssd1306_send_data_start();
-  for (uint16_t i = 0; i < data_size; i++)
+  for (uint8_t page = 0; page <= PAGES; page++)
   {
-    ssd1306_send_data_byte(data);
+    set_all_area(0, 127, page);
+    ssd1306_send_data_start();
+    for (uint8_t cnt=0; cnt<127; cnt++) {
+      ssd1306_send_data_byte(data);
+    }
+    ssd1306_send_data_stop();
+    delay(10);
   }
-  ssd1306_send_data_stop();
+/*  for (uint8_t cnt=0; cnt<5; cnt++) {
+    draw_digit_24x32(cnt,0,data,false);
+    draw_digit_24x32(cnt,1,data,false);
+  }
+  */
 }
 
 void SSD1306::v_line(uint8_t col, uint8_t data)
@@ -218,7 +224,7 @@ int SSD1306::get_offset(byte theChar){
   if (theChar == ';')  { return 11*96; }
   if (theChar == '.')  { return 12*96; }
   if (theChar == 'V')  { return 13*96; }
-  return 0;  
+  return -1;  
 }
 
 void SSD1306::draw_digit_24x32(uint8_t col, uint8_t row, uint8_t digit, bool invert_color)
@@ -228,12 +234,19 @@ void SSD1306::draw_digit_24x32(uint8_t col, uint8_t row, uint8_t digit, bool inv
   if (( offset == -1) || (col > 100) || ( row > 1)) { return; } //cant print here
   
   for (uint8_t page = row*4; page< ((row*4)+4); page++) {
-    set_all_area(col, 127, page);
+    set_all_area(col, 127, page); //0 127 4
     ssd1306_send_data_start();
     for (int i=0; i < 24; i++){
-      ssd1306_send_data_byte(pgm_read_word_near(&font24x32[offset+i+(24*page)]));
+      if (page > 3) {
+        ssd1306_send_data_byte(pgm_read_word_near(&font24x32[offset+i+(24*(page-4))])); // 0+0+(24*4)
+      }
+      else
+      {
+        ssd1306_send_data_byte(pgm_read_word_near(&font24x32[offset+i+(24*page)])); // 0+0+(24*4)
+      }
     }
     ssd1306_send_data_stop();
+    delay(10);
   }
 }
 
